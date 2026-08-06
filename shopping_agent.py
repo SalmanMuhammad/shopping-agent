@@ -24,7 +24,7 @@ from user_preferences import (
 load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
-llm_groq = ChatGroq(model="qwen/qwen3.6-27b", temperature=0)
+llm_groq = ChatGroq(model="openai/gpt-oss-120b", temperature=0)
 
 # llm_groq = ChatGroq(model="qwen/qwen3.6-27b", temperature=0)
 
