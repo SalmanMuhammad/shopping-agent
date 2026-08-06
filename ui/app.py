@@ -4,7 +4,7 @@ import tempfile
 import streamlit as st
 
 # Ensure project base directory is on sys.path
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
@@ -104,20 +104,83 @@ st.markdown(
 )
 
 # ---------------------------------------------------------------------------
+# Session State Initialization
+# ---------------------------------------------------------------------------
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "pending_user_message" not in st.session_state:
+    st.session_state.pending_user_message = None
+if "pending_skip_guardrail" not in st.session_state:
+    st.session_state.pending_skip_guardrail = False
+
+
+# ---------------------------------------------------------------------------
+# Helper to extract final assistant response (ignore tool calls)
+# ---------------------------------------------------------------------------
+def extract_assistant_response(messages) -> str:
+    """Finds the last assistant response containing non-empty text."""
+    for msg in reversed(messages):
+        content = getattr(msg, "content", None)
+        if content and isinstance(content, str) and content.strip():
+            msg_type = getattr(msg, "type", getattr(msg, "role", ""))
+            if msg_type in ("ai", "assistant") and not getattr(msg, "tool_calls", None):
+                return content.replace("`", "")
+    if messages:
+        last = messages[-1]
+        content = getattr(last, "content", str(last))
+        return str(content).replace("`", "")
+    return "No response generated."
+
+
+# ---------------------------------------------------------------------------
+# Core Processing Function (does NOT append messages – only returns response)
+# ---------------------------------------------------------------------------
+def process_and_respond(user_message: str, skip_guardrail: bool = False) -> str:
+    """
+    Assumes the user message is already appended to st.session_state.messages.
+    Runs guardrail (unless skipped), invokes agent, and returns the final response.
+    """
+    # Guardrail (skip if requested)
+    if skip_guardrail:
+        status = "proceed"
+        logger.info("Quick prompt: guardrail skipped.")
+    else:
+        status = model_base_guardrail(st.session_state.messages)
+        logger.info(f"Query guardrail decision: {status}")
+
+    if status == "proceed":
+        try:
+            result = agent.invoke({"messages": st.session_state.messages})
+            response = extract_assistant_response(result["messages"])
+        except Exception as e:
+            logger.error(f"Agent execution error: {e}")
+            response = f"An error occurred while handling your request: {e}"
+    else:
+        response = (
+            "⚠️ I am a specialized shopping assistant for Organic Harvest store. "
+            "I can only help you search products, view reviews, manage preferences, and place orders."
+        )
+
+    return response
+
+
+# ---------------------------------------------------------------------------
 # Sidebar — Visual Search & Shortcuts
 # ---------------------------------------------------------------------------
 with st.sidebar:
     st.header("📸 Visual Product Search")
-    st.caption("Upload a photo of any grocery or item to instantly find matching inventory.")
+    st.caption(
+        "Upload a photo of any grocery or item to instantly find matching inventory."
+    )
 
     uploaded_file = st.file_uploader(
         "Upload image", type=["jpg", "jpeg", "png", "webp", "avif"]
     )
 
     if uploaded_file:
-        st.image(uploaded_file, use_container_width=True)
+        st.image(uploaded_file, width="content")
 
-    if uploaded_file and st.button("🔍 Find Similar Products", use_container_width=True):
+    if uploaded_file and st.button("🔍 Find Similar Products", width="content"):
         suffix = os.path.splitext(uploaded_file.name)[1] or ".jpg"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp.write(uploaded_file.getvalue())
@@ -134,26 +197,25 @@ with st.sidebar:
         "Organic honey under $20 with 4.5+ rating",
         "Show me snacks",
         "I always want organic oil over $15",
-        "What are my stored preferences?",
-        "List my order history",
+        "What are my product preferences?",
+        "Could you list my order summary?",
     ]
     for q in quick_prompts:
         if st.button(q, key=f"btn_{q}"):
+            # Append user message and set pending flags (skip guardrail)
             st.session_state.messages.append({"role": "user", "content": q})
+            st.session_state.pending_user_message = q
+            st.session_state.pending_skip_guardrail = True
             st.rerun()
-
-# ---------------------------------------------------------------------------
-# Session State Initialization
-# ---------------------------------------------------------------------------
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
 # ---------------------------------------------------------------------------
 # Chat History Display
 # ---------------------------------------------------------------------------
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        if msg["role"] == "user" and msg["content"].startswith("I uploaded a product image"):
+        if msg["role"] == "user" and msg["content"].startswith(
+            "I uploaded a product image"
+        ):
             st.markdown(f"📷 **Searching by uploaded image**")
         else:
             # Escape dollar signs for clean Streamlit rendering
@@ -161,7 +223,7 @@ for msg in st.session_state.messages:
             st.markdown(content)
 
 # ---------------------------------------------------------------------------
-# Handle Unprocessed Image Message
+# Handle Unprocessed Image Message (existing logic)
 # ---------------------------------------------------------------------------
 if (
     st.session_state.messages
@@ -172,7 +234,7 @@ if (
         with st.spinner("Analyzing uploaded image & querying catalog..."):
             try:
                 result = agent.invoke({"messages": st.session_state.messages})
-                response = result["messages"][-1].content.replace("`", "")
+                response = extract_assistant_response(result["messages"])
             except Exception as e:
                 logger.error(f"Error during image agent invocation: {e}")
                 response = f"Sorry, an error occurred while processing the image: {e}"
@@ -184,32 +246,32 @@ if (
     st.rerun()
 
 # ---------------------------------------------------------------------------
-# Interactive Chat Input & Guardrail Processing
+# Handle Pending User Message (from chat input or quick prompts)
 # ---------------------------------------------------------------------------
-if prompt := st.chat_input("Ask for organic honey, nuts, coffee, preferences, or orders..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+if st.session_state.pending_user_message:
+    user_msg = st.session_state.pending_user_message
+    skip = st.session_state.pending_skip_guardrail
 
     with st.chat_message("assistant"):
         with st.spinner("Analyzing request..."):
-            status = model_base_guardrail(st.session_state.messages)
-            logger.info(f"Query guardrail decision: {status}")
-
-            if status == "proceed":
-                try:
-                    result = agent.invoke({"messages": st.session_state.messages})
-                    response = result["messages"][-1].content.replace("`", "")
-                except Exception as e:
-                    logger.error(f"Agent execution error: {e}")
-                    response = f"An error occurred while handling your request: {e}"
-            else:
-                response = (
-                    "⚠️ I am a specialized shopping assistant for Organic Harvest store. "
-                    "I can only help you search products, view reviews, manage preferences, and place orders."
-                )
+            response = process_and_respond(user_msg, skip_guardrail=skip)
 
         st.markdown(response.replace("$", r"\$"))
 
     st.session_state.messages.append({"role": "assistant", "content": response})
+    # Clear pending flags
+    st.session_state.pending_user_message = None
+    st.session_state.pending_skip_guardrail = False
+    st.rerun()
+
+# ---------------------------------------------------------------------------
+# Interactive Chat Input
+# ---------------------------------------------------------------------------
+if prompt := st.chat_input(
+    "Ask for organic honey, nuts, coffee, preferences, or orders..."
+):
+    # Append user message and set pending flags (guardrail runs by default)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.pending_user_message = prompt
+    st.session_state.pending_skip_guardrail = False
     st.rerun()

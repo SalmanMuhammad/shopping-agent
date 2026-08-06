@@ -28,8 +28,19 @@ def get_primary_llm() -> Any:
 
 
 def get_guardrail_llm() -> Any:
-    """Instantiates the classifier LLM (Ollama or Groq)."""
-    logger.info(f"Initializing Guardrail LLM model: {settings.OLLAMA_TEXT_MODEL}")
+    """Instantiates the classifier LLM (Groq primary with Ollama fallback)."""
+    if settings.GROQ_API_KEY:
+        try:
+            logger.info("Initializing Groq Guardrail LLM model: llama-3.3-70b-versatile")
+            return ChatGroq(
+                model="llama-3.3-70b-versatile",
+                temperature=0.0,
+                api_key=settings.GROQ_API_KEY,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to initialize Groq Guardrail LLM ({e}), falling back to ChatOllama.")
+
+    logger.info(f"Initializing Ollama Guardrail LLM model: {settings.OLLAMA_TEXT_MODEL}")
     return ChatOllama(
         model=settings.OLLAMA_TEXT_MODEL,
         temperature=0.0,
