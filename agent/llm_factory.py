@@ -2,8 +2,8 @@ import os
 from typing import Any
 from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
-from production.config import settings
-from production.logger import logger
+from config import settings
+from logger import logger
 
 
 def get_primary_llm() -> Any:

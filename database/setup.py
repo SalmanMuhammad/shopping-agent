@@ -1,8 +1,8 @@
 import sqlite3
 from pathlib import Path
-from production.database.connection import get_db_connection
-from production.logger import logger
-from production.config import settings
+from database.connection import get_db_connection
+from logger import logger
+from config import settings
 
 
 def init_db(db_path: Path = None) -> None:

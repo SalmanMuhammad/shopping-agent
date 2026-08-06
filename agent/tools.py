@@ -2,11 +2,11 @@ import json
 from typing import Optional, Union
 from langchain.tools import tool
 
-from production.services.product_service import ProductService
-from production.services.review_service import ReviewService
-from production.services.order_service import OrderService
-from production.services.preference_service import PreferenceService
-from production.services.vision_service import VisionService
+from services.product_service import ProductService
+from services.review_service import ReviewService
+from services.order_service import OrderService
+from services.preference_service import PreferenceService
+from services.vision_service import VisionService
 
 # Singleton service instances
 product_service = ProductService()

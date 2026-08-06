@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Union
-from production.agent.llm_factory import get_guardrail_llm
-from production.agent.prompts import GUARDRAIL_SYSTEM_PROMPT
-from production.logger import logger
+from agent.llm_factory import get_guardrail_llm
+from agent.prompts import GUARDRAIL_SYSTEM_PROMPT
+from logger import logger
 
 
 def model_base_guardrail(messages: List[Union[Dict[str, Any], Any]]) -> str:

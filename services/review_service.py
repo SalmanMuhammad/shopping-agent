@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
-from production.database.repository import ReviewRepository
-from production.logger import logger
+from database.repository import ReviewRepository
+from logger import logger
 
 
 class ReviewService:

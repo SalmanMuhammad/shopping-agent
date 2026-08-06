@@ -1,4 +1,5 @@
-from ..shopping_agent import agent
+from agent.shopping_agent import agent
+
 
 def normalise_value(val):
     """Convert string representations to actual types."""
@@ -7,7 +8,6 @@ def normalise_value(val):
             return True
         if val.lower() == "false":
             return False
-        # Try to convert to int/float if possible
         try:
             return int(val)
         except ValueError:
@@ -16,6 +16,7 @@ def normalise_value(val):
             except ValueError:
                 return val
     return val
+
 
 TEST_CASES = [
     {
@@ -44,6 +45,7 @@ TEST_CASES = [
     }
 ]
 
+
 def extract_tool_calls_from_messages(messages):
     tool_calls = []
     for msg in messages:
@@ -55,22 +57,20 @@ def extract_tool_calls_from_messages(messages):
                 })
     return tool_calls
 
-def test_agent():
+
+def test_agent_tool_calling_accuracy():
     for case in TEST_CASES:
         result = agent.invoke({"messages": [{"role": "user", "content": case["query"]}]})
         messages = result["messages"]
         actual_calls = extract_tool_calls_from_messages(messages)
         expected = case["expected"]
 
-        # We only check that the first N calls match the expected sequence.
-        # If the agent calls extra tools (like get_rating), we ignore them.
         for i, exp in enumerate(expected):
             if i >= len(actual_calls):
                 raise AssertionError(f"Test failed for '{case['query']}': missing tool call {exp}")
             act = actual_calls[i]
             assert act["tool"] == exp["tool"], f"Expected {exp['tool']}, got {act['tool']}"
 
-            # Compare arguments with type normalisation
             for k, v in exp["args"].items():
                 actual_val = act["args"].get(k)
                 normalised_actual = normalise_value(actual_val)
@@ -78,7 +78,8 @@ def test_agent():
                 assert normalised_actual == normalised_expected, \
                     f"Expected {k}={v} (type {type(v)}), got {actual_val} (type {type(actual_val)})"
 
-        print(f"✅ Passed: {case['query']}")
+        print(f"✅ Passed tool accuracy check: {case['query']}")
+
 
 if __name__ == "__main__":
-    test_agent()
+    test_agent_tool_calling_accuracy()

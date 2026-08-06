@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
-from production.database.repository import OrderRepository, ProductRepository
-from production.logger import logger
+from database.repository import OrderRepository, ProductRepository
+from logger import logger
 
 
 class OrderService:

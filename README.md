@@ -1,4 +1,4 @@
-# 🛒 AI Shopping Assistant (Production Grade)
+# 🛒 AI Shopping Assistant
 
 An enterprise-ready conversational AI shopping agent built with **LangChain**, **LangGraph**, **Groq**, **Ollama**, and **Streamlit**. The assistant helps users discover organic products, apply category-specific and global preferences, view aggregated customer reviews/ratings, perform visual image searches, and manage checkouts and order history.
 
@@ -18,48 +18,45 @@ An enterprise-ready conversational AI shopping agent built with **LangChain**, *
 
 ## 📁 Repository Architecture
 
-The project has been refactored into a production package in [`production/`](file:///Users/macbook/Desktop/work/ollama/agents/shopping-agent/production):
-
 ```
 shopping-agent/
-├── production/
-│   ├── config.py              # Application settings & environment configurations
-│   ├── logger.py              # Standardized structured logging framework
-│   │
-│   ├── database/              # Data persistence layer
-│   │   ├── connection.py      # Thread-safe SQLite context manager
-│   │   ├── repository.py      # Repositories for Products, Reviews, Preferences, Orders
-│   │   └── setup.py           # DB migration & seed data initializer
-│   │
-│   ├── models/                # Pydantic schemas
-│   │   └── schemas.py         # Type validation definitions
-│   │
-│   ├── services/              # Domain business services
-│   │   ├── product_service.py # Product search & preference inheritance
-│   │   ├── review_service.py  # Rating aggregations
-│   │   ├── order_service.py   # Checkout & order history
-│   │   ├── preference_service.py # Global/category preference CRUD
-│   │   └── vision_service.py  # Image attribute extraction
-│   │
-│   ├── agent/                 # LangChain & LangGraph agent orchestration
-│   │   ├── llm_factory.py     # Safe LLM initialization (Groq primary, Ollama fallback)
-│   │   ├── guardrail.py       # Query classification guardrail
-│   │   ├── prompts.py         # Externalized prompt templates
-│   │   ├── tools.py           # Strongly-typed agent tools
-│   │   └── shopping_agent.py  # Agent graph runner
-│   │
-│   ├── ui/                    # Presentation layer
-│   │   └── app.py             # Streamlit application
-│   │
-│   └── tests/                 # Test suite
-│       ├── test_services.py   # Unit tests for domain services & database
-│       ├── test_tool_call_acc.py # Tool calling precision tests
-│       └── test_model_response_quality.py # Response quality judge tests
+├── config.py              # Application settings & environment configurations
+├── logger.py              # Standardized structured logging framework
 │
-├── store.db                   # SQLite database
-├── .env                       # Environment variables
-├── requirements.txt           # Python dependencies
-└── README.md                  # Project documentation
+├── database/              # Data persistence layer
+│   ├── connection.py      # Thread-safe SQLite context manager
+│   ├── repository.py      # Repositories for Products, Reviews, Preferences, Orders
+│   └── setup.py           # DB migration & seed data initializer
+│
+├── models/                # Pydantic schemas
+│   └── schemas.py         # Type validation definitions
+│
+├── services/              # Domain business services
+│   ├── product_service.py # Product search & preference inheritance
+│   ├── review_service.py  # Rating aggregations
+│   ├── order_service.py   # Checkout & order history
+│   ├── preference_service.py # Global/category preference CRUD
+│   └── vision_service.py  # Image attribute extraction
+│
+├── agent/                 # LangChain & LangGraph agent orchestration
+│   ├── llm_factory.py     # Safe LLM initialization (Groq primary, Ollama fallback)
+│   ├── guardrail.py       # Query classification guardrail
+│   ├── prompts.py         # Externalized prompt templates
+│   ├── tools.py           # Strongly-typed agent tools
+│   └── shopping_agent.py  # Agent graph runner
+│
+├── ui/                    # Presentation layer
+│   └── app.py             # Streamlit application
+│
+├── tests/                 # Test suite
+│   ├── test_services.py   # Unit tests for domain services & database
+│   ├── test_tool_call_acc.py # Tool calling precision tests
+│   └── test_model_response_quality.py # Response quality judge tests
+│
+├── store.db               # SQLite database
+├── .env                   # Environment variables
+├── requirements.txt       # Python dependencies
+└── README.md              # Project documentation
 ```
 
 ---
@@ -72,10 +69,9 @@ shopping-agent/
 
 ### 2. Environment Setup & Dependency Installation
 
-Clone the repository and install the dependencies:
+Install required Python dependencies:
 
 ```bash
-# Install required Python packages
 pip install -r requirements.txt
 ```
 
@@ -97,7 +93,7 @@ LOG_LEVEL=INFO
 Initialize the SQLite database schema and load seed data:
 
 ```bash
-python -m production.database.setup
+python -m database.setup
 ```
 
 ---
@@ -107,7 +103,7 @@ python -m production.database.setup
 Launch the Streamlit web application:
 
 ```bash
-streamlit run production/ui/app.py
+streamlit run ui/app.py
 ```
 
 ---
@@ -116,15 +112,15 @@ streamlit run production/ui/app.py
 
 ### Run Domain Unit Tests
 ```bash
-python -m production.tests.test_services
+python -m tests.test_services
 ```
 
 ### Run Agent Tool Calling Accuracy Tests
 ```bash
-python -m production.tests.test_tool_call_acc
+python -m tests.test_tool_call_acc
 ```
 
 ### Run Model Response Quality Judge Evaluation
 ```bash
-python -m production.tests.test_model_response_quality
+python -m tests.test_model_response_quality
 ```

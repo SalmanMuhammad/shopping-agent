@@ -3,7 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from workspace root .env file if available
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR / ".env"
 if ENV_PATH.exists():
     load_dotenv(dotenv_path=ENV_PATH)

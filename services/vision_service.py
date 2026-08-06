@@ -3,7 +3,7 @@ import os
 from typing import Optional, Any
 from langchain_core.messages import HumanMessage
 
-from production.logger import logger
+from logger import logger
 
 
 class VisionService:
@@ -46,7 +46,7 @@ class VisionService:
         )
 
         if not self.vision_llm:
-            from production.agent.llm_factory import get_vision_llm
+            from agent.llm_factory import get_vision_llm
             self.vision_llm = get_vision_llm()
 
         response = self.vision_llm.invoke([message])

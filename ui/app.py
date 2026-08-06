@@ -8,9 +8,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from production.agent.shopping_agent import agent
-from production.agent.guardrail import model_base_guardrail
-from production.logger import logger
+from agent.shopping_agent import agent
+from agent.guardrail import model_base_guardrail
+from logger import logger
 
 # ---------------------------------------------------------------------------
 # Page Config & Custom Styling

@@ -1,6 +1,6 @@
 import logging
 import sys
-from production.config import settings
+from config import settings
 
 
 def setup_logger(name: str = "shopping_agent") -> logging.Logger:

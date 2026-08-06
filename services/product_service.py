@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any, Union
-from production.database.repository import ProductRepository, PreferenceRepository
-from production.logger import logger
+from database.repository import ProductRepository, PreferenceRepository
+from logger import logger
 
 
 class ProductService:

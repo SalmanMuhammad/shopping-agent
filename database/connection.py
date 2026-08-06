@@ -2,8 +2,8 @@ import sqlite3
 from contextlib import contextmanager
 from typing import Generator
 from pathlib import Path
-from production.config import settings
-from production.logger import logger
+from config import settings
+from logger import logger
 
 
 @contextmanager

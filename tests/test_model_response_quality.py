@@ -1,22 +1,13 @@
-# eval_response_quality.py
 import json
-from shopping_agent import agent
-from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
-from langchain_ollama import ChatOllama
+from agent.shopping_agent import agent
+from agent.llm_factory import get_guardrail_llm
 
-# judge_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-judge_llm = ChatOllama(model="llama3.2", temperature=0)
+
 TEST_CASES = [
-    {
-        "query": "organic honey under $20",
-    },
-    {
-        "query": "show me snacks",
-    },
-    {
-        "query": "I want grains",
-    }
+    {"query": "organic honey under $20"},
+    {"query": "show me snacks"},
+    {"query": "I want grains"},
 ]
 
 JUDGE_PROMPT = """
@@ -40,19 +31,28 @@ Agent response:
 Return ONLY the JSON object.
 """
 
+
 def get_agent_response(query):
     result = agent.invoke({"messages": [{"role": "user", "content": query}]})
     return result["messages"][-1].content
 
+
 def judge_response(query, response):
+    judge_llm = get_guardrail_llm()
     prompt = JUDGE_PROMPT.format(query=query, response=response)
     msg = HumanMessage(content=prompt)
     result = judge_llm.invoke([msg])
     try:
         scores = json.loads(result.content)
     except json.JSONDecodeError:
-        scores = {"relevance": 0, "correctness": 0, "format": 0, "explanation": "Parsing failed"}
+        scores = {
+            "relevance": 0,
+            "correctness": 0,
+            "format": 0,
+            "explanation": "Parsing failed",
+        }
     return scores
+
 
 def run_evaluation():
     all_scores = []
@@ -63,7 +63,6 @@ def run_evaluation():
         scores["query"] = query
         all_scores.append(scores)
 
-    # Compute averages
     avg_relevance = sum(s["relevance"] for s in all_scores) / len(all_scores)
     avg_correctness = sum(s["correctness"] for s in all_scores) / len(all_scores)
     avg_format = sum(s["format"] for s in all_scores) / len(all_scores)
@@ -74,19 +73,27 @@ def run_evaluation():
     print("\nDetailed scores:")
     for s in all_scores:
         print(f"- Query: {s['query']}")
-        print(f"  Relevance: {s['relevance']}, Correctness: {s['correctness']}, Format: {s['format']}")
+        print(
+            f"  Relevance: {s['relevance']}, Correctness: {s['correctness']}, Format: {s['format']}"
+        )
         print(f"  Explanation: {s.get('explanation', '')}")
 
-    # Flag failures
-    failed = [s for s in all_scores if any(s[k] < 7 for k in ["relevance", "correctness", "format"])]
+    failed = [
+        s
+        for s in all_scores
+        if any(s[k] < 7 for k in ["relevance", "correctness", "format"])
+    ]
     if failed:
         print("\n⚠️ Some responses failed the evaluation:")
         for f in failed:
-            print(f"  Query: {f['query']} - Scores: R={f['relevance']}, C={f['correctness']}, F={f['format']}")
+            print(
+                f"  Query: {f['query']} - Scores: R={f['relevance']}, C={f['correctness']}, F={f['format']}"
+            )
         return False
     else:
-        print("\n✅ All tests passed.")
+        print("\n✅ All quality tests passed.")
         return True
+
 
 if __name__ == "__main__":
     run_evaluation()

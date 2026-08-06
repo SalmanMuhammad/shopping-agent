@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any
-from production.database.repository import PreferenceRepository
-from production.logger import logger
+from database.repository import PreferenceRepository
+from logger import logger
 
 
 class PreferenceService:

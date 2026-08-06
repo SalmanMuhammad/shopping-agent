@@ -1,8 +1,8 @@
 import sqlite3
 from typing import Optional, List, Dict, Any
 from pathlib import Path
-from production.database.connection import get_db_connection
-from production.logger import logger
+from database.connection import get_db_connection
+from logger import logger
 
 
 class ProductRepository:

@@ -1,10 +1,10 @@
 from typing import Optional, Any
 from langchain.agents import create_agent
-from production.agent.llm_factory import get_primary_llm
-from production.agent.prompts import AGENT_SYSTEM_PROMPT
-from production.agent.tools import tools
-from production.agent.guardrail import model_base_guardrail
-from production.logger import logger
+from agent.llm_factory import get_primary_llm
+from agent.prompts import AGENT_SYSTEM_PROMPT
+from agent.tools import tools
+from agent.guardrail import model_base_guardrail
+from logger import logger
 
 
 def build_shopping_agent(model: Optional[Any] = None) -> Any:

@@ -1,17 +1,17 @@
 import os
 import tempfile
 from pathlib import Path
-from production.database.setup import init_db
-from production.database.repository import (
+from database.setup import init_db
+from database.repository import (
     ProductRepository,
     ReviewRepository,
     OrderRepository,
     PreferenceRepository,
 )
-from production.services.product_service import ProductService
-from production.services.review_service import ReviewService
-from production.services.order_service import OrderService
-from production.services.preference_service import PreferenceService
+from services.product_service import ProductService
+from services.review_service import ReviewService
+from services.order_service import OrderService
+from services.preference_service import PreferenceService
 
 
 
